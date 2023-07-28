@@ -6,6 +6,8 @@ import (
 	_ "github.com/lib/pq"
 	config "github.com/septian03yogi/enigmalaundryinc/config/database"
 	"github.com/septian03yogi/enigmalaundryinc/model"
+	"github.com/septian03yogi/enigmalaundryinc/repository"
+	"github.com/septian03yogi/enigmalaundryinc/usecase"
 )
 
 // func connectDb() *sql.DB {
@@ -170,6 +172,8 @@ func main() {
 
 	dbConn, _ := config.NewDbConnection(cfg)
 	db := dbConn.Conn()
+	uomRepo := repository.NewUomRepository(db)
+	uomUseCase := usecase.NewUomUseCase(uomRepo)
 
 	//repository
 	uom := model.Uom{
