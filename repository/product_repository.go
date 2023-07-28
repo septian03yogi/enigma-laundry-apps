@@ -4,10 +4,13 @@ import (
 	"database/sql"
 
 	"github.com/septian03yogi/enigmalaundryinc/model"
+	"github.com/septian03yogi/enigmalaundryinc/model/dto"
+	"github.com/septian03yogi/enigmalaundryinc/utils/common"
 )
 
 type ProductRepository interface {
 	BaseRepository[model.Product]
+	BaseRepositoryPaging[model.Product]
 }
 
 type productRepository struct {
@@ -25,7 +28,7 @@ func (p *productRepository) Create(payload model.Product) error {
 
 // List implements productrepository
 func (p *productRepository) List() ([]model.Product, error) {
-	rows, err := p.db.Query("SELECT SELECT p.id, p.name, p.price, u.id, u.name FROM product p INNER JOIN uom u ON u.id=p.uom_id")
+	rows, err := p.db.Query("SELECT p.id, p.name, p.price, u.id, u.name FROM product p INNER JOIN uom u ON u.id = p.uom_id")
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +72,34 @@ func (p *productRepository) Delete(id string) error {
 		return err
 	}
 	return nil
+}
+
+// Paging implements productrepository
+func (p *productRepository) Paging(requestPaging dto.PaginationParam) ([]model.Product, dto.Paging, error) {
+	var paginationQuery dto.PaginationQuery
+	paginationQuery = common.GetPaginationParams(requestPaging)
+
+	rows, err := p.db.Query("SELECT p.id, p.name, p.price, u.id, u.name FROM product p INNER JOIN uom u ON u.id=p.uom_id LIMIT $1 OFFSET$2", paginationQuery.Take, paginationQuery.Skip)
+	if err != nil {
+		return nil, dto.Paging{}, err
+	}
+	var products []model.Product
+	for rows.Next() {
+		var product model.Product
+		err := rows.Scan(&product.Id, &product.Name, &product.Price, &product.Uom.Id, &product.Uom.Name)
+		if err != nil {
+			return nil, dto.Paging{}, err
+		}
+		products = append(products, product)
+	}
+	//count product
+	var totalRows int
+	row := p.db.QueryRow("SELECT COUNT * FROM product")
+	err = row.Scan(&totalRows)
+	if err != nil {
+		return nil, dto.Paging{}, err
+	}
+	return products, common.Paginate(paginationQuery.Page, paginationQuery.Take, totalRows), nil
 }
 
 func NewProductRepository(db *sql.DB) ProductRepository {

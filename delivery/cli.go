@@ -12,8 +12,8 @@ import (
 
 type Console struct {
 	//semua usecase disimpan disini
-	uomUC usecase.UomUseCase
-	//productUC
+	uomUC     usecase.UomUseCase
+	productUC usecase.ProductUseCase
 }
 
 // func (c *Console) uomCreateForm() model.Uom {
@@ -53,12 +53,13 @@ func (c *Console) mainMenuForm() {
 func (c *Console) Run() {
 	for {
 		c.mainMenuForm()
-		controller := controller.NewUomController(c.uomUC)
 		var selectedMenu string
 		fmt.Scanln(&selectedMenu)
 		switch selectedMenu {
 		case "1":
-			controller.UomMenuForm()
+			controller.NewUomController(c.uomUC).UomMenuForm()
+		case "2":
+			controller.NewProductController(c.productUC).HandlerMainForm()
 		case "6":
 			os.Exit(0)
 		default:
@@ -76,9 +77,12 @@ func NewConsole() *Console {
 	dbConn, _ := config.NewDbConnection(cfg)
 	db := dbConn.Conn()
 	uomRepo := repository.NewUomRepository(db)
+	productRepo := repository.NewProductRepository(db)
 	uomUseCase := usecase.NewUomUseCase(uomRepo)
+	productUseCase := usecase.NewProductUseCase(productRepo, uomUseCase)
 	return &Console{
-		uomUC: uomUseCase,
+		uomUC:     uomUseCase,
+		productUC: productUseCase,
 	}
 
 	// //repository
