@@ -2,7 +2,10 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type DbConfig struct {
@@ -21,6 +24,11 @@ type Config struct {
 // env / getenv untuk membuat wadah agar pengaturan config(hos,port,name dll) fleksibel, menyesuaikan keadaan server
 // Method
 func (c *Config) ReadConfig() error {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	c.DbConfig = DbConfig{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
