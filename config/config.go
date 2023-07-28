@@ -2,10 +2,9 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/septian03yogi/enigmalaundryinc/utils/common"
 )
 
 type DbConfig struct {
@@ -24,9 +23,9 @@ type Config struct {
 // env / getenv untuk membuat wadah agar pengaturan config(hos,port,name dll) fleksibel, menyesuaikan keadaan server
 // Method
 func (c *Config) ReadConfig() error {
-	err := godotenv.Load()
+	err := common.LoadEnv()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		return err
 	}
 
 	c.DbConfig = DbConfig{
