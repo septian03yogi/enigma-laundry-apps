@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/septian03yogi/enigmalaundryinc/model"
 	"github.com/septian03yogi/enigmalaundryinc/model/dto"
@@ -23,6 +24,7 @@ func (p *productRepository) Create(payload model.Product) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Product created succesfully")
 	return nil
 }
 
@@ -43,6 +45,7 @@ func (p *productRepository) List() ([]model.Product, error) {
 		products = append(products, product)
 	}
 	return products, nil
+
 }
 
 // Get implements productrepository
@@ -78,8 +81,7 @@ func (p *productRepository) Delete(id string) error {
 func (p *productRepository) Paging(requestPaging dto.PaginationParam) ([]model.Product, dto.Paging, error) {
 	var paginationQuery dto.PaginationQuery
 	paginationQuery = common.GetPaginationParams(requestPaging)
-
-	rows, err := p.db.Query("SELECT p.id, p.name, p.price, u.id, u.name FROM product p INNER JOIN uom u ON u.id=p.uom_id LIMIT $1 OFFSET$2", paginationQuery.Take, paginationQuery.Skip)
+	rows, err := p.db.Query("SELECT p.id, p.name, p.price, u.id, u.name FROM product p INNER JOIN uom u ON u.id = p.uom_id LIMIT $1 OFFSET $2", paginationQuery.Take, paginationQuery.Skip)
 	if err != nil {
 		return nil, dto.Paging{}, err
 	}
@@ -92,14 +94,17 @@ func (p *productRepository) Paging(requestPaging dto.PaginationParam) ([]model.P
 		}
 		products = append(products, product)
 	}
-	//count product
+
+	// count product
 	var totalRows int
-	row := p.db.QueryRow("SELECT COUNT * FROM product")
+	row := p.db.QueryRow("SELECT COUNT(*) FROM product")
 	err = row.Scan(&totalRows)
 	if err != nil {
 		return nil, dto.Paging{}, err
 	}
+
 	return products, common.Paginate(paginationQuery.Page, paginationQuery.Take, totalRows), nil
+
 }
 
 func NewProductRepository(db *sql.DB) ProductRepository {
